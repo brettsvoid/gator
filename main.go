@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"os"
 
@@ -18,7 +17,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("error reading config: %v", err)
 	}
-	fmt.Printf("Read config: %+v\n", cfg)
 
 	db, err := sql.Open("postgres", cfg.DBURL)
 	if err != nil {
@@ -36,28 +34,24 @@ func main() {
 	}
 	cmds.Register("login", commands.HandlerLogin)
 	cmds.Register("register", commands.HandlerRegister)
+	cmds.Register("reset", commands.HandlerReset)
+	cmds.Register("users", commands.HandlerListUsers)
+	cmds.Register("agg", commands.HandlerAgg)
+	cmds.Register("addfeed", commands.HandlerAddFeed)
 
 	args := os.Args
 	if len(args) < 2 {
-		log.Fatalln("not enough arguments were provided")
-		os.Exit(1)
+		log.Fatal("Usage: cli <command> [args...]")
 	}
 
 	cmdName := args[1]
 	cmdArgs := args[2:]
+
 	err = cmds.Run(state, commands.Command{
 		Name: cmdName,
 		Args: cmdArgs,
 	})
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
-
-	cfg, err = config.Read()
-	if err != nil {
-		log.Fatalf("error reading config: %v", err)
-	}
-
-	fmt.Printf("Read config again: %+v\n", cfg)
 }
