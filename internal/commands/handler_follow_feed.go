@@ -9,17 +9,12 @@ import (
 	"github.com/google/uuid"
 )
 
-func HandlerFollowFeed(s *State, cmd Command) error {
+func HandlerFollowFeed(s *State, cmd Command, user database.User) error {
 	if len(cmd.Args) != 1 {
 		return fmt.Errorf("usage: %s <feed_url>", cmd.Name)
 	}
 
 	url := cmd.Args[0]
-
-	user, err := s.DB.GetUser(context.Background(), s.Config.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("couldn't find user: %w", err)
-	}
 
 	feed, err := s.DB.GetFeedByUrl(context.Background(), url)
 	if err != nil {
@@ -45,14 +40,9 @@ func HandlerFollowFeed(s *State, cmd Command) error {
 	return nil
 }
 
-func HandlerListFeedFollows(s *State, cmd Command) error {
+func HandlerListFeedFollows(s *State, cmd Command, user database.User) error {
 	if len(cmd.Args) != 0 {
 		return fmt.Errorf("usage: %s", cmd.Name)
-	}
-
-	user, err := s.DB.GetUser(context.Background(), s.Config.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("couldn't find user: %w", err)
 	}
 
 	feedFollows, err := s.DB.GetFeedFollowsForUser(context.Background(), user.ID)

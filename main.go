@@ -10,6 +10,7 @@ import (
 	"github.com/brettsvoid/gator/internal/commands"
 	"github.com/brettsvoid/gator/internal/config"
 	"github.com/brettsvoid/gator/internal/database"
+	"github.com/brettsvoid/gator/internal/middleware"
 )
 
 func main() {
@@ -37,10 +38,11 @@ func main() {
 	cmds.Register("reset", commands.HandlerReset)
 	cmds.Register("users", commands.HandlerListUsers)
 	cmds.Register("agg", commands.HandlerAgg)
-	cmds.Register("addfeed", commands.HandlerAddFeed)
+	// cmds.Register("addfeed", commands.HandlerAddFeed)
+	cmds.Register("addfeed", middleware.LoggedIn(commands.HandlerAddFeed))
 	cmds.Register("feeds", commands.HandlerListFeeds)
-	cmds.Register("follow", commands.HandlerFollowFeed)
-	cmds.Register("following", commands.HandlerListFeedFollows)
+	cmds.Register("follow", middleware.LoggedIn(commands.HandlerFollowFeed))
+	cmds.Register("following", middleware.LoggedIn(commands.HandlerListFeedFollows))
 
 	args := os.Args
 	if len(args) < 2 {
