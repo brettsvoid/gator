@@ -43,6 +43,7 @@ func main() {
 	cmds.Register("feeds", commands.HandlerListFeeds)
 	cmds.Register("follow", middleware.LoggedIn(commands.HandlerFollowFeed))
 	cmds.Register("following", middleware.LoggedIn(commands.HandlerListFeedFollows))
+	cmds.Register("unfollow", middleware.LoggedIn(commands.HandlerUnfollowFeed))
 
 	args := os.Args
 	if len(args) < 2 {

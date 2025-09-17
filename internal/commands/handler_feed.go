@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html"
 	"io"
+	"log"
 	"net/http"
 	"time"
 
@@ -29,21 +30,51 @@ type RSSItem struct {
 	PubDate     string `xml:"pubDate"`
 }
 
-func HandlerAgg(s *State, cmd Command) error {
-	feedUrl := "https://www.wagslane.dev/index.xml"
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	feed, err := fetchFeed(ctx, feedUrl)
+func scrapeFeeds(s *State) {
+	feed, err := s.DB.GetNextFeedToFetch(context.Background())
 	if err != nil {
-		return err
+		log.Println("Couldn't get next feeds to fetch", err)
+		return
 	}
 
-	for _, item := range feed.Channel.Item {
-		fmt.Printf("%s\n", item.Title)
+	log.Println("Found a feed to fetch!")
+	scrapeFeed(s.DB, feed)
+}
+
+func scrapeFeed(db *database.Queries, feed database.Feed) {
+	_, err := db.MarkFeedFetched(context.Background(), feed.ID)
+	if err != nil {
+		log.Printf("Couldn't mark feed %s fetched: %v", feed.Name, err)
+		return
 	}
 
-	return nil
+	feedData, err := fetchFeed(context.Background(), feed.Url)
+	if err != nil {
+		log.Printf("Couldn't collect feed %s: %v", feed.Name, err)
+		return
+	}
+	for _, item := range feedData.Channel.Item {
+		fmt.Printf("Found post: %s\n", item.Title)
+	}
+	log.Printf("Feed %s collected, %v posts found", feed.Name, len(feedData.Channel.Item))
+}
+
+func HandlerAgg(s *State, cmd Command) error {
+	if len(cmd.Args) != 1 {
+		return fmt.Errorf("usage: %s <time_between_reqs>", cmd.Name)
+	}
+
+	timeBetweenRequests, err := time.ParseDuration(cmd.Args[0])
+	if err != nil {
+		return fmt.Errorf("invalid duration: %w", err)
+	}
+
+	log.Printf("Collecting feeds every %s...", timeBetweenRequests)
+
+	ticker := time.NewTicker(timeBetweenRequests)
+	for ; ; <-ticker.C {
+		scrapeFeeds(s)
+	}
 }
 
 func HandlerAddFeed(s *State, cmd Command, user database.User) error {
