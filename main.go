@@ -38,7 +38,6 @@ func main() {
 	cmds.Register("reset", commands.HandlerReset)
 	cmds.Register("users", commands.HandlerListUsers)
 	cmds.Register("agg", commands.HandlerAgg)
-	// cmds.Register("addfeed", commands.HandlerAddFeed)
 	cmds.Register("addfeed", middleware.LoggedIn(commands.HandlerAddFeed))
 	cmds.Register("feeds", commands.HandlerListFeeds)
 	cmds.Register("follow", middleware.LoggedIn(commands.HandlerFollowFeed))
