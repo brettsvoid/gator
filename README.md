@@ -73,6 +73,14 @@ go install github.com/brettsvoid/gator@latest
 
   Stops tracking posts from that feed.
 
+- **Browse posts**
+
+  ```bash
+  gator browse --limit 5 --sort asc --filter go
+  ```
+
+  Stops tracking posts from that feed.
+
 - **Agg and refetch feeds on a 10 minute interval**
 
   ```bash
